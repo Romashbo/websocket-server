@@ -1,8 +1,8 @@
+const http = require("http");
 const WebSocket = require("ws");
 
 const PORT = process.env.PORT || 4000;
-const server = require("http").createServer();
-
+const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 
 let currentSessions = [];
@@ -43,5 +43,5 @@ wss.on("connection", (ws) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`✅ WebSocket сервер запущен на порт ${PORT}`);
+  console.log(`✅ WebSocket сервер запущен на порту ${PORT}`);
 });
