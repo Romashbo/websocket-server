@@ -6,27 +6,36 @@ const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 
 let currentSessions = [];
+let completedCount = 0;
 
 wss.on("connection", (ws) => {
   console.log("🟢 Клиент подключился");
 
+  // Отправляем текущее состояние
   ws.send(
-    JSON.stringify({ type: "updateSessions", sessions: currentSessions })
+    JSON.stringify({
+      type: "syncState",
+      sessions: currentSessions,
+      completedCount,
+    })
   );
 
   ws.on("message", (message) => {
     try {
       const data = JSON.parse(message);
 
-      if (data.type === "updateSessions") {
+      if (data.type === "updateState") {
         currentSessions = data.sessions;
+        completedCount = data.completedCount;
 
+        // Рассылаем новое состояние всем клиентам, включая отправителя
         wss.clients.forEach((client) => {
-          if (client !== ws && client.readyState === WebSocket.OPEN) {
+          if (client.readyState === WebSocket.OPEN) {
             client.send(
               JSON.stringify({
-                type: "updateSessions",
+                type: "syncState",
                 sessions: currentSessions,
+                completedCount,
               })
             );
           }
