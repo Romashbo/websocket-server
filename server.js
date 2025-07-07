@@ -1,15 +1,15 @@
-// Установи: npm install ws
 const WebSocket = require("ws");
 
-const PORT = 4000;
-const wss = new WebSocket.Server({ port: PORT });
+const PORT = process.env.PORT || 4000;
+const server = require("http").createServer();
+
+const wss = new WebSocket.Server({ server });
 
 let currentSessions = [];
 
 wss.on("connection", (ws) => {
   console.log("🟢 Клиент подключился");
 
-  // Отправляем текущие сессии новому клиенту
   ws.send(
     JSON.stringify({ type: "updateSessions", sessions: currentSessions })
   );
@@ -21,7 +21,6 @@ wss.on("connection", (ws) => {
       if (data.type === "updateSessions") {
         currentSessions = data.sessions;
 
-        // Рассылаем всем другим клиентам
         wss.clients.forEach((client) => {
           if (client !== ws && client.readyState === WebSocket.OPEN) {
             client.send(
@@ -43,4 +42,6 @@ wss.on("connection", (ws) => {
   });
 });
 
-console.log(`✅ WebSocket сервер запущен на ws://localhost:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`✅ WebSocket сервер запущен на порт ${PORT}`);
+});
